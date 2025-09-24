@@ -33,7 +33,7 @@
         try{
         $sql = "INSERT INTO stark_eventos.stark_usuario
                     (cod_usuario, tipo_documento, num_documento, nombre_completo, apellido_paterno, apellido_materno, gls_correo, password, tipo_usuario, aud_usr_registro, aud_fec_registro)
-                    VALUES(:cod_usuario, :tipo_documento, :num_documento, :nombre_completo, :apellido_paterno, :apellido_materno, :gls_correo, :password, :tipo_usuario, :aud_usr_registro, :aud_fec_registro);
+                    VALUES(:cod_usuario, :tipo_documento, :num_documento, :nombre_completo, :apellido_paterno, :apellido_materno, :gls_correo, aes_encrypt(:password,'AES'), :tipo_usuario, :aud_usr_registro, :aud_fec_registro);
                 ";
             
             //echo $sql;
