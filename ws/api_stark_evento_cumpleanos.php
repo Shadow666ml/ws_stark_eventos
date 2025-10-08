@@ -4,25 +4,25 @@ include "../bd/conexion.php";
 $pdo = new Conexion();
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-    if (isset($_GET['id_evento'])) {
-        $id_evento = $_GET['id_evento'];
-        $stmt = $pdo->prepare("SELECT * FROM stark_eventos WHERE id_evento = :id_evento");
-        $stmt->bindParam(':id_evento', $id_evento);
+    if (isset($_GET['id_evento_contacto'])) {
+        $id_evento_contacto = $_GET['id_evento_contacto'];
+        $stmt = $pdo->prepare("SELECT * FROM stark_evento_cumpleanos WHERE id_evento_contacto = :id_evento_contacto");
+        $stmt->bindParam(':id_evento_contacto', $id_evento_contacto);
         $stmt->execute();
-        $empresa = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($empresa) {
-            header("HTTP/1.1 200 OK");
-            echo json_encode($empresa);
+        $evento_contacto = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($evento_contacto) {
+            header(header: "HTTP/1.1 200 OK");
+            echo json_encode($evento_contacto);
         } else {
             header("HTTP/1.1 404 Not Found");
             echo json_encode(['error' => 'Evento no encontrado']);
         }
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM stark_eventos");
+        $stmt = $pdo->prepare("SELECT * FROM stark_evento_contacto");
         $stmt->execute();
-        $empresas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $evento_contacto = $stmt->fetchAll(PDO::FETCH_ASSOC);
         header("HTTP/1.1 200 OK");
-        echo json_encode($empresas);
+        echo json_encode($evento_contacto);
         exit;
     }
 }
@@ -30,10 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     try {
         
-        $sql = "INSERT INTO stark_eventos.stark_eventos
+        $sql = "INSERT INTO stark_evento_contacto.stark_evento_contacto
             (fecha_evento,
              estado_evento,
-             tipo_evento, 
              hora_inicio,
              hora_fin,
              direccion,
@@ -46,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
              aud_fec_registro)
             VALUES     (:fecha_evento,
                         'PENDIENTE ASIGNACION',
-                        :tipo_evento,
                         :hora_inicio,
                         :hora_fin,
                         :direccion,
@@ -60,7 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
        
         $stmt = $pdo->prepare($sql);
         $stmt->bindValue(':fecha_evento', $_POST['fecha_evento']);
-        $stmt->bindValue(':tipo_evento', $_POST['tipo_evento']);
         $stmt->bindValue(':hora_inicio', $_POST['hora_inicio']);
         $stmt->bindValue(':hora_fin', $_POST['hora_fin']);
         $stmt->bindValue(':direccion', $_POST['direccion']);
@@ -72,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $idPost = $pdo->lastInsertId();
 
         
-        //Ini Insertar EventoContacto 
+        //InsertarContacto 
         $sql="INSERT INTO stark_eventos.stark_evento_contacto
             (id_evento,
              nombre_contacto,
@@ -80,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
              telefono_contacto,
              aud_usr_registro,
              aud_fec_registro)
-        VALUES     ($idPost,
+        VALUES     (:id_evento,
                     :nombre_contacto,
                     :correo_contacto,
                     :telefono_contacto,
@@ -88,6 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     now()); ";
 
         $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':id_evento', $idPost);
         $stmt->bindValue(':nombre_contacto', $_POST['nombre_contacto']);
         $stmt->bindValue(':correo_contacto', $_POST['correo_contacto']);
         $stmt->bindValue(':telefono_contacto', $_POST['telefono_contacto']);
@@ -100,35 +98,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo json_encode(['error' => 'Error al crear el contacto del evento']);
             exit;
         }
-        //Fin Insertar EventoContacto
-        //Ini Insertar EventoCumpleanos
-        $sql = "INSERT INTO stark_eventos.stark_eventos_cumpleanos
-                    (id_evento,
-                    nombre_cumpleaniero,
-                    edad_cumpleaniero,
-                    aud_usr_registro,
-                    aud_fec_registro)
-        VALUES     ($idPost,
-                    :nombre_cumpleaniero,
-                    :edad_cumpleaniero,
-                    :aud_usr_registro,
-                    now()); ";
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindValue(':nombre_cumpleaniero', $_POST['nombre_cumpleaniero']);
-        $stmt->bindValue(':edad_cumpleaniero', $_POST['edad_cumpleaniero']);
-        $stmt->bindValue(':aud_usr_registro', $_POST['aud_usr_registro']);
-        $stmt->execute();
-        $id_cumpleanos = $pdo->lastInsertId();
-        if (!$id_cumpleanos) {
-            header("HTTP/1.1 500 Internal Server Error");
-            echo json_encode(['error' => 'Error al crear el registro de cumpleaños del evento']);
-            exit;
-        }
-        //Fin Insertar EventoCumpleanos
         
         if ($idPost) {
             header("HTTP/1.1 201 Evento creado");
-            echo json_encode(['success' => true, 'id' => $idPost]);
+            echo json_decode($idPost);
             exit;
         } else {
             header("HTTP/1.1 500 Internal Server Error");
@@ -147,12 +120,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
         // Actualizar una empresa
         if (isset($_GET['id_evento'])) {
             $id_evento = $_GET['id_evento'];
-            $stmt = $pdo->prepare("SELECT * FROM stark_eventos WHERE id_evento = :id_evento");
+            $stmt = $pdo->prepare("SELECT * FROM stark_evento_cumpleanos WHERE id_evento = :id_evento");
             $stmt->bindParam(':id_evento', $id_evento);
             $stmt->execute();
             $empresa = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($empresa) {
-                $sql = "UPDATE stark_eventos.stark_eventos
+                $sql = "UPDATE stark_evento_contacto.stark_evento_contacto
                             SET    fecha_evento = :fecha_evento,
                                    estado_evento = :estado_evento,
                                    hora_inicio = :hora_inicio,
@@ -213,14 +186,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
     // Eliminar una empresa
     if (isset($_GET['id_evento'])) {
         $id_evento = $_GET['id_evento'];
-        $stmt = $pdo->prepare("SELECT * FROM stark_eventos WHERE id_evento = :id_evento");
+        $stmt = $pdo->prepare("SELECT * FROM stark_evento_cumpleanos WHERE id_evento = :id_evento");
         $stmt->bindParam(':id_evento', $id_evento);
         $stmt->execute();
         $empresa = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($empresa) {
             if (isset($_GET['id_evento'])) {
                 $id_evento = $_GET['id_evento'];
-                $stmt = $pdo->prepare("DELETE FROM stark_eventos.stark_eventos WHERE id_evento = :id_evento");
+                $stmt = $pdo->prepare("DELETE FROM stark_evento_contacto.stark_evento_cumpleanos WHERE id_evento = :id_evento");
                 $stmt->bindParam(':id_evento', $id_evento);
                 if ($stmt->execute()) {
                     header("HTTP/1.1 200 OK");
