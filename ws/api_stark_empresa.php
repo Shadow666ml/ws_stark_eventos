@@ -78,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
             if ($empresa) {
                 $sql = "UPDATE stark_eventos.stark_empresa
                     SET    gls_empresa = :gls_empresa,
+                           ruc_empresa = :ruc_empresa,
                            direccion = :direccion,
                            telefono = :telefono,
                            correo = :correo,
@@ -90,6 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
                 $stmt->bindValue(':direccion', $_GET['direccion']);
                 $stmt->bindValue(':telefono', $_GET['telefono']);
                 $stmt->bindValue(':correo', $_GET['correo']);
+                $stmt->bindValue(':ruc_empresa', $_GET['ruc_empresa']);
+
                 $stmt->bindValue(':aud_usr_modificacion', $_GET['aud_usr_modificacion']);
                 $stmt->bindValue(':id_empresa', $_GET['id_empresa']);
 
@@ -97,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
                 if ($stmt->execute()) {
 
                     header("HTTP/1.1 200 OK");
-                    echo json_encode(['message' => 'Empresa actualizada correctamente']);
+                    echo json_encode(['success' => 'Empresa actualizada correctamente']);
                     exit;
                 } else {
                     header("HTTP/1.1 500 Internal Server Error");

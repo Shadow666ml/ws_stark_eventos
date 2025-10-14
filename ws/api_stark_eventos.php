@@ -6,7 +6,40 @@ $pdo = new Conexion();
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     if (isset($_GET['id_evento'])) {
         $id_evento = $_GET['id_evento'];
-        $stmt = $pdo->prepare("SELECT * FROM stark_eventos WHERE id_evento = :id_evento");
+        $stmt = $pdo->prepare("SELECT se.fecha_evento,
+             se.estado_evento,
+             se.tipo_evento, 
+             se.hora_inicio,
+             se.hora_fin,
+             se.direccion,
+             se.numero_invitados,
+             se.presupuesto_estimado,
+             se.tematica_evento,
+             se.comentarios,
+             se.lista_servicios,
+             se.aud_usr_registro,
+             se.aud_fec_registro  , 
+             sec.nombre_contacto,
+                sec.correo_contacto,
+                sec.telefono_contacto,
+                sem.nombre_novio,
+                sem.nombre_novia,
+                sem.lugar_recepcion,
+                secu.nombre_cumpleaniero,
+                secu.edad_cumpleaniero,
+                seb.nombre_padre,
+                seb.nombre_madre,
+                seb.sexo_bebe,
+                seb.lista_regalos_sugeridos,
+                seq.nombre_quinceanera,
+                seq.fec_nacimiento_quinceanera
+        FROM stark_eventos se
+        JOIN stark_evento_contacto sec ON se.id_evento = sec.id_evento
+        LEFT JOIN stark_eventos_matrimonio sem ON se.id_evento = sem.id_evento
+        LEFT JOIN stark_eventos_cumpleanos secu ON se.id_evento = secu.id_evento
+        LEFT JOIN stark_eventos_baby_shower seb ON se.id_evento = seb.id_evento
+        LEFT JOIN stark_eventos_quinceanero seq ON se.id_evento = seq.id_evento
+        WHERE se.id_evento = :id_evento");
         $stmt->bindParam(':id_evento', $id_evento);
         $stmt->execute();
         $empresa = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -29,6 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     try {
+
+        $tipo_evento = $_POST['tipo_evento'];
         
         $sql = "INSERT INTO stark_eventos.stark_eventos
             (fecha_evento,
@@ -101,30 +136,133 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
         }
         //Fin Insertar EventoContacto
-        //Ini Insertar EventoCumpleanos
-        $sql = "INSERT INTO stark_eventos.stark_eventos_cumpleanos
-                    (id_evento,
-                    nombre_cumpleaniero,
-                    edad_cumpleaniero,
-                    aud_usr_registro,
-                    aud_fec_registro)
-        VALUES     ($idPost,
-                    :nombre_cumpleaniero,
-                    :edad_cumpleaniero,
-                    :aud_usr_registro,
-                    now()); ";
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindValue(':nombre_cumpleaniero', $_POST['nombre_cumpleaniero']);
-        $stmt->bindValue(':edad_cumpleaniero', $_POST['edad_cumpleaniero']);
-        $stmt->bindValue(':aud_usr_registro', $_POST['aud_usr_registro']);
-        $stmt->execute();
-        $id_cumpleanos = $pdo->lastInsertId();
-        if (!$id_cumpleanos) {
-            header("HTTP/1.1 500 Internal Server Error");
-            echo json_encode(['error' => 'Error al crear el registro de cumpleaños del evento']);
-            exit;
+
+        switch ($tipo_evento) {
+            case 'MATRIMONIO':
+                // Lógica específica para MATRIMONIO
+                //Ini Insertar EventoCumpleanos
+                $sql = "INSERT INTO stark_eventos.stark_eventos_matrimonio
+                            (id_evento,
+                            nombre_novio,
+                            nombre_novia,
+                            lugar_recepcion,
+                            aud_usr_registro,
+                            aud_fec_registro)
+                VALUES     ($idPost,
+                            :nombre_novio,
+                            :nombre_novia,
+                            :lugar_recepcion,
+                            :aud_usr_registro,
+                            now()); ";
+                $stmt = $pdo->prepare($sql);
+                $stmt->bindValue(':nombre_novio', $_POST['nombre_novio']);
+                $stmt->bindValue(':nombre_novia', $_POST['nombre_novia']);
+                $stmt->bindValue(':lugar_recepcion', $_POST['lugar_recepcion']);
+                $stmt->bindValue(':aud_usr_registro', $_POST['aud_usr_registro']);
+                $stmt->execute();
+                $id_matrimonio = $pdo->lastInsertId();
+                if (!$id_matrimonio) {
+                    header("HTTP/1.1 500 Internal Server Error");
+                    echo json_encode(['error' => 'Error al crear el registro de matrimonio del evento']);
+                    exit;
+                }
+                //Fin Insertar EventoMatrimonio
+                break;
+            case 'CUMPLEANIOS':
+                // Lógica específica para CUMPLEAÑOS
+                //Ini Insertar EventoCumpleanos
+                $sql = "INSERT INTO stark_eventos.stark_eventos_cumpleanos
+                            (id_evento,
+                            nombre_cumpleaniero,
+                            edad_cumpleaniero,
+                            aud_usr_registro,
+                            aud_fec_registro)
+                VALUES     ($idPost,
+                            :nombre_cumpleaniero,
+                            :edad_cumpleaniero,
+                            :aud_usr_registro,
+                            now()); ";
+                $stmt = $pdo->prepare($sql);
+                $stmt->bindValue(':nombre_cumpleaniero', $_POST['nombre_cumpleaniero']);
+                $stmt->bindValue(':edad_cumpleaniero', $_POST['edad_cumpleaniero']);
+                $stmt->bindValue(':aud_usr_registro', $_POST['aud_usr_registro']);
+                $stmt->execute();
+                $id_cumpleanos = $pdo->lastInsertId();
+                if (!$id_cumpleanos) {
+                    header("HTTP/1.1 500 Internal Server Error");
+                    echo json_encode(['error' => 'Error al crear el registro de cumpleaños del evento']);
+                    exit;
+                }
+                //Fin Insertar EventoCumpleanos
+                break;
+            case 'BABYSHOWER':
+                // Lógica específica para BABYSHOWER
+                //Ini Insertar EventoBabyShower
+                $sql = "INSERT INTO stark_eventos.stark_eventos_baby_shower
+                            (id_evento,
+                            nombre_padre,
+                            nombre_madre,
+                            sexo_bebe,
+                            lista_regalos_sugeridos,
+                            aud_usr_registro,
+                            aud_fec_registro)
+                VALUES     ($idPost,
+                            :nombre_padre,
+                            :nombre_madre,
+                            :sexo_bebe,
+                            :lista_regalos_sugeridos,
+                            :aud_usr_registro,
+                            now()); ";
+                $stmt = $pdo->prepare($sql);
+                $stmt->bindValue(':nombre_padre', $_POST['nombre_padre']);
+                $stmt->bindValue(':nombre_madre', $_POST['nombre_madre']);
+                $stmt->bindValue(':sexo_bebe', $_POST['sexo_bebe']);
+                $stmt->bindValue(':lista_regalos_sugeridos', $_POST['lista_regalos_sugeridos']);
+                $stmt->bindValue(':aud_usr_registro', $_POST['aud_usr_registro']);
+                $stmt->execute();
+                $id_baby_shower = $pdo->lastInsertId();
+                if (!$id_baby_shower) {
+                    header("HTTP/1.1 500 Internal Server Error");
+                    echo json_encode(['error' => 'Error al crear el registro de baby shower del evento']);
+                    exit;
+                }
+                //Fin Insertar EventoBabyShower
+                
+                break;
+            case 'QUINCEANIERO':
+                // Lógica específica para QUINCEAÑERO
+                 //Ini Insertar EventoQuinceaniero
+                $sql = "INSERT INTO stark_eventos.stark_eventos_quinceanero
+                            (id_evento,
+                            nombre_quinceanera,
+                            fec_nacimiento_quinceanera,
+                            aud_usr_registro,
+                            aud_fec_registro)
+                VALUES     ($idPost,
+                            :nombre_quinceanera,
+                            :fec_nacimiento_quinceanera,
+                            :aud_usr_registro,
+                            now()); ";
+                $stmt = $pdo->prepare($sql);
+                $stmt->bindValue(':nombre_quinceanera', $_POST['nombre_quinceanera']);
+                $stmt->bindValue(':fec_nacimiento_quinceanera', $_POST['fec_nacimiento_quinceanera']);
+                $stmt->bindValue(':aud_usr_registro', $_POST['aud_usr_registro']);
+                $stmt->execute();
+                $id_quinceaniero = $pdo->lastInsertId();
+                if (!$id_quinceaniero) {
+                    header("HTTP/1.1 500 Internal Server Error");
+                    echo json_encode(['error' => 'Error al crear el registro de quinceañero del evento']);
+                    exit;
+                }
+                //Fin Insertar EventoQuinceaniero
+                break;
+            default:
+                header("HTTP/1.1 400 Bad Request");
+                echo json_encode(['error' => 'Tipo de evento no válido']);
+                exit;
         }
-        //Fin Insertar EventoCumpleanos
+
+        
         
         if ($idPost) {
             header("HTTP/1.1 201 Evento creado");
