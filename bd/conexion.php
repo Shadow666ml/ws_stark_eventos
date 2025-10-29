@@ -2,7 +2,7 @@
    
    class Conexion extends PDO {
        private $host = 'localhost';
-       private $db   = 'stark_eventos';
+       private $db   = 'bd_stark_eventos';
        private $user = 'root';
        private $pass = '';
 
