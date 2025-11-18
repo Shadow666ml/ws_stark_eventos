@@ -1,8 +1,8 @@
 <?php
    
    class Conexion extends PDO {
-       private $host = 'localhost';
-       private $db   = 'bd_stark_eventos';
+       private $host = 'localhost:3306';
+       private $db   = 'stark_eventos';
        private $user = 'root';
        private $pass = '';
 
